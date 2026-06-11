@@ -9,10 +9,12 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ClaudeDraftGenerator implements DraftGenerator {
+public class ClaudeDraftGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(ClaudeDraftGenerator.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public record GeneratedContent(String coverLetter, String emailSubject, String emailBody) {}
 
     private final ChatClient chatClient;
 
@@ -20,7 +22,6 @@ public class ClaudeDraftGenerator implements DraftGenerator {
         this.chatClient = chatClient;
     }
 
-    @Override
     public GeneratedContent generate(String resumeText, JobListing job) {
         String prompt = """
                 Generate a tailored cover letter and recruiter outreach email for this job application. \

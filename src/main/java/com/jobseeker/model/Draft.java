@@ -6,11 +6,10 @@ public class Draft {
     private String company;
     private String recruiterName;
     private String email;
-    private boolean verified;
     private String coverLetter;
     private String emailSubject;
     private String emailBody;
-    private String status;   // DRAFT | APPROVED | SENT
+    private String status;
 
     public String getJobId()                  { return jobId; }
     public void   setJobId(String v)          { jobId = v; }
@@ -26,9 +25,6 @@ public class Draft {
 
     public String getEmail()                  { return email; }
     public void   setEmail(String v)          { email = v; }
-
-    public boolean isVerified()               { return verified; }
-    public void    setVerified(boolean v)     { verified = v; }
 
     public String getCoverLetter()            { return coverLetter; }
     public void   setCoverLetter(String v)    { coverLetter = v; }
