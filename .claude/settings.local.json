@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $5}')",
+      "Bash(grep -v '^0$')",
+      "Bash(xargs -I{} taskkill //F //PID {})",
+      "Bash(mvn -o -q package -DskipTests)",
+      "Bash(java -jar target/jobseeker-0.0.1-SNAPSHOT.jar)",
+      "Bash(curl -s -X POST http://localhost:8080/api/resume -H 'Content-Type: application/json' -d '{\"text\":\"Jane Smith\\\\nSenior Software Engineer | jane@example.com\\\\n\\\\n5+ years building distributed systems in Java and Go. Led backend platform at two startups.\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/jobs/1/draft)",
+      "Bash(curl -s -X POST http://localhost:8080/api/jobs/2/draft)",
+      "Bash(curl -s -X POST http://localhost:8080/api/jobs/3/draft)",
+      "Bash(curl -s -X POST http://localhost:8080/api/jobs/4/draft)",
+      "Bash(curl -s -X PUT http://localhost:8080/api/draft -H 'Content-Type: application/json' -d '{\"emailSubject\":\"Re: Product Manager role at TechNova\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/draft/approve)",
+      "Bash(curl -s -X POST http://localhost:8080/api/draft/send)",
+      "Bash(java -version)",
+      "Bash(javac -version)",
+      "Skill(claude-api)",
+      "Bash(mvn compile *)",
+      "Bash(mvn -version)",
+      "Read(//c/Users/davvo/.m2/**)",
+      "Read(//c/softwares/apache-maven-3.9.9-bin/apache-maven-3.9.9/conf/**)",
+      "Bash(mvn package *)",
+      "Bash(jar tf *)",
+      "Bash(git add *)"
+    ]
+  }
+}

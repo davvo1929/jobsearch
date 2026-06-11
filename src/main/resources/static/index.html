@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobSeeker</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f8;
+            color: #2d3748;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a202c;
+            color: #fff;
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,.3);
+        }
+        header h1 { font-size: 1.15rem; font-weight: 600; }
+
+        .container {
+            max-width: 860px;
+            margin: 2rem auto;
+            padding: 0 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        }
+        .card-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #a0aec0;
+            margin-bottom: 1.1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.3rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            resize: vertical;
+            background: #fafafa;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,.15);
+            background: #fff;
+        }
+        #resume-text { min-height: 170px; }
+
+        button {
+            padding: 0.5rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .15s, opacity .15s;
+        }
+        button:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-primary  { background: #667eea; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #5a67d8; }
+        .btn-success  { background: #48bb78; color: #fff; }
+        .btn-success:hover:not(:disabled) { background: #38a169; }
+        .btn-danger   { background: #fff; color: #e53e3e; border: 1px solid #fed7d7; font-size:.8rem; padding:.3rem .75rem; }
+        .btn-danger:hover:not(:disabled)  { background: #fff5f5; }
+        .btn-row { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; flex-wrap: wrap; }
+
+        /* ── Progress steps ── */
+        .steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.25rem;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            font-size: .75rem;
+            font-weight: 600;
+            padding: .5rem .25rem;
+            border-bottom: 3px solid #e2e8f0;
+            color: #a0aec0;
+        }
+        .step.active  { border-color: #667eea; color: #667eea; }
+        .step.done    { border-color: #48bb78; color: #48bb78; }
+
+        /* ── Spinner ── */
+        .spinner-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .5rem 0;
+            color: #718096;
+            font-size: .875rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin-icon {
+            width: 18px; height: 18px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin .9s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* ── Draft review cards ── */
+        .draft-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: .75rem;
+            overflow: hidden;
+        }
+        .draft-card:last-child { margin-bottom: 0; }
+        .draft-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .85rem 1.1rem;
+            cursor: pointer;
+            user-select: none;
+            gap: 1rem;
+        }
+        .draft-header:hover { background: #f7fafc; }
+        .draft-header-left h3 { font-size: .9375rem; font-weight: 600; margin-bottom: .1rem; }
+        .draft-header-left .meta { font-size: .8rem; color: #718096; }
+        .draft-header-right { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+        .draft-body {
+            padding: 1rem 1.1rem;
+            border-top: 1px solid #e2e8f0;
+            background: #fafafa;
+            display: none;
+        }
+        .draft-body.open { display: block; }
+        .draft-section-label {
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #a0aec0;
+            margin: .75rem 0 .35rem;
+        }
+        .draft-section-label:first-child { margin-top: 0; }
+        .draft-text {
+            font-size: .8125rem;
+            color: #4a5568;
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: .6rem .75rem;
+            line-height: 1.65;
+        }
+        .chevron { transition: transform .2s; font-size: .75rem; color: #a0aec0; }
+        .chevron.open { transform: rotate(180deg); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: .2rem .55rem;
+            border-radius: 9999px;
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .badge-unverified { background: #fef3c7; color: #92400e; }
+        .badge-sent       { background: #c6f6d5; color: #22543d; }
+        .badge-failed     { background: #fed7d7; color: #9b2c2c; }
+
+        /* ── Success banner ── */
+        .success-banner {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-size: .9rem;
+            color: #22543d;
+        }
+        .success-icon { font-size: 1.4rem; }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background: #1a202c;
+            color: #fff;
+            padding: .6rem 1.25rem;
+            border-radius: 8px;
+            font-size: .875rem;
+            opacity: 0;
+            transition: opacity .25s, transform .25s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    </svg>
+    <h1>JobSeeker</h1>
+</header>
+
+<div class="container">
+
+    <!-- ── Step 1: Resume ── -->
+    <div class="card" id="resume-section">
+        <div class="steps">
+            <div class="step active" id="s1">1 · Resume</div>
+            <div class="step" id="s2">2 · Finding Jobs</div>
+            <div class="step" id="s3">3 · Writing Drafts</div>
+            <div class="step" id="s4">4 · Review &amp; Send</div>
+        </div>
+        <div class="card-title">Paste your resume</div>
+        <label for="resume-text">Plain text — the AI reads this to find matching jobs and write your cover letters</label>
+        <textarea id="resume-text"
+            placeholder="Jane Smith&#10;Software Engineer · jane@example.com&#10;&#10;5 years building distributed systems in Java and Go..."></textarea>
+        <div class="btn-row">
+            <button class="btn-primary" id="run-btn">Run Pipeline</button>
+            <span id="run-status" style="font-size:.8125rem;color:#718096;"></span>
+        </div>
+    </div>
+
+    <!-- ── Processing indicator ── -->
+    <div class="card hidden" id="progress-section">
+        <div class="card-title">Working…</div>
+        <div class="spinner-row">
+            <div class="spin-icon"></div>
+            <span id="prog-text">Searching for matching job openings…</span>
+        </div>
+    </div>
+
+    <!-- ── Done ── -->
+    <div class="hidden" id="done-section">
+        <div class="success-banner">
+            <span class="success-icon">✓</span>
+            <span id="done-msg">Emails sent!</span>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const BASE_URL = 'http://localhost:8080';
+    const $ = id => document.getElementById(id);
+
+    let toastTimer;
+    function toast(msg, ms = 3000) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+    }
+
+    function setStep(n) {
+        ['s1','s2','s3','s4'].forEach((id, i) => {
+            const el = $(id);
+            el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
+        });
+    }
+
+    // ── Run Pipeline ────────────────────────────────────────────────
+    $('run-btn').addEventListener('click', async () => {
+        const text = $('resume-text').value.trim();
+        if (!text) { toast('Please paste your resume first.'); return; }
+
+        const btn = $('run-btn');
+        btn.disabled = true;
+        $('run-status').textContent = 'Saving…';
+
+        // 1. Save resume first
+        try {
+            const saveRes = await fetch(BASE_URL + '/api/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            if (!saveRes.ok) throw new Error(await saveRes.text());
+        } catch (e) {
+            toast('Error saving resume: ' + e.message, 5000);
+            btn.disabled = false;
+            $('run-status').textContent = '';
+            return;
+        }
+
+        $('run-status').textContent = '';
+        $('progress-section').classList.remove('hidden');
+        $('progress-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setStep(2);
+        btn.textContent = 'Running…';
+
+        // 2. Open SSE stream — events drive the step indicator in real time
+        const es = new EventSource(BASE_URL + '/api/pipeline/stream');
+
+        let jobsFound = 0;
+        let draftsReady = 0;
+        let emailsSent = 0;
+        let emailsFailed = 0;
+
+        es.onmessage = (e) => {
+            let evt;
+            try { evt = JSON.parse(e.data); } catch { return; }
+
+            switch (evt.type) {
+                case 'status':
+                    $('prog-text').textContent = evt.message || 'Processing…';
+                    setStep(2);
+                    break;
+
+                case 'jobs_found':
+                    jobsFound = evt.count || 0;
+                    $('prog-text').textContent = `Found ${jobsFound} matching jobs — writing cover letters…`;
+                    setStep(3);
+                    break;
+
+                case 'processing':
+                    $('prog-text').textContent = evt.message || 'Processing…';
+                    setStep(3);
+                    break;
+
+                case 'draft_ready':
+                    draftsReady++;
+                    $('prog-text').textContent =
+                        `Draft ready for ${esc(evt.company)} (${draftsReady}/${jobsFound}) — sending emails…`;
+                    if (draftsReady === jobsFound) setStep(4);
+                    break;
+
+                case 'sending':
+                    $('prog-text').textContent = `Sending email to ${esc(evt.company)}…`;
+                    setStep(4);
+                    break;
+
+                case 'email_sent':
+                    emailsSent++;
+                    $('prog-text').textContent = `Email sent to ${esc(evt.company)} (${emailsSent} sent so far)`;
+                    break;
+
+                case 'email_failed':
+                    emailsFailed++;
+                    toast(`Email to ${evt.company} failed: ${evt.error}`, 6000);
+                    break;
+
+                case 'done':
+                    es.close();
+                    $('progress-section').classList.add('hidden');
+                    const s = evt.sent ?? emailsSent;
+                    const t = evt.total ?? jobsFound;
+                    $('done-msg').textContent =
+                        `Sent ${s} of ${t} email${t !== 1 ? 's' : ''} from davvo1929@gmail.com. Check your Sent folder.`;
+                    $('done-section').classList.remove('hidden');
+                    $('done-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    btn.textContent = 'Run Again';
+                    btn.disabled = false;
+                    break;
+
+                case 'error':
+                    es.close();
+                    toast('Error: ' + (evt.message || 'Unknown error'), 6000);
+                    $('progress-section').classList.add('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'Run Pipeline';
+                    $('run-status').textContent = '';
+                    setStep(1);
+                    break;
+            }
+        };
+
+        es.onerror = () => {
+            es.close();
+            toast('Connection lost — check the server is running.', 6000);
+            $('progress-section').classList.add('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Run Pipeline';
+            $('run-status').textContent = '';
+            setStep(1);
+        };
+    });
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+</script>
+
+</body>
+</html>
