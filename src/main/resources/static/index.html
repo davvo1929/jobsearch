@@ -332,92 +332,29 @@
         $('progress-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         setStep(2);
         btn.textContent = 'Running…';
+        $('prog-text').textContent = 'Finding matching jobs, writing cover letters, and sending emails…';
 
-        // 2. Open SSE stream — events drive the step indicator in real time
-        const es = new EventSource(BASE_URL + '/api/pipeline/stream');
+        // 2. Run the pipeline — this call blocks until all emails are sent
+        try {
+            const res = await fetch(BASE_URL + '/api/pipeline/run', { method: 'POST' });
+            if (!res.ok) throw new Error(await res.text());
+            const result = await res.json();
 
-        let jobsFound = 0;
-        let draftsReady = 0;
-        let emailsSent = 0;
-        let emailsFailed = 0;
-
-        es.onmessage = (e) => {
-            let evt;
-            try { evt = JSON.parse(e.data); } catch { return; }
-
-            switch (evt.type) {
-                case 'status':
-                    $('prog-text').textContent = evt.message || 'Processing…';
-                    setStep(2);
-                    break;
-
-                case 'jobs_found':
-                    jobsFound = evt.count || 0;
-                    $('prog-text').textContent = `Found ${jobsFound} matching jobs — writing cover letters…`;
-                    setStep(3);
-                    break;
-
-                case 'processing':
-                    $('prog-text').textContent = evt.message || 'Processing…';
-                    setStep(3);
-                    break;
-
-                case 'draft_ready':
-                    draftsReady++;
-                    $('prog-text').textContent =
-                        `Draft ready for ${esc(evt.company)} (${draftsReady}/${jobsFound}) — sending emails…`;
-                    if (draftsReady === jobsFound) setStep(4);
-                    break;
-
-                case 'sending':
-                    $('prog-text').textContent = `Sending email to ${esc(evt.company)}…`;
-                    setStep(4);
-                    break;
-
-                case 'email_sent':
-                    emailsSent++;
-                    $('prog-text').textContent = `Email sent to ${esc(evt.company)} (${emailsSent} sent so far)`;
-                    break;
-
-                case 'email_failed':
-                    emailsFailed++;
-                    toast(`Email to ${evt.company} failed: ${evt.error}`, 6000);
-                    break;
-
-                case 'done':
-                    es.close();
-                    $('progress-section').classList.add('hidden');
-                    const s = evt.sent ?? emailsSent;
-                    const t = evt.total ?? jobsFound;
-                    $('done-msg').textContent =
-                        `Sent ${s} of ${t} email${t !== 1 ? 's' : ''} from davvo1929@gmail.com. Check your Sent folder.`;
-                    $('done-section').classList.remove('hidden');
-                    $('done-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    btn.textContent = 'Run Again';
-                    btn.disabled = false;
-                    break;
-
-                case 'error':
-                    es.close();
-                    toast('Error: ' + (evt.message || 'Unknown error'), 6000);
-                    $('progress-section').classList.add('hidden');
-                    btn.disabled = false;
-                    btn.textContent = 'Run Pipeline';
-                    $('run-status').textContent = '';
-                    setStep(1);
-                    break;
-            }
-        };
-
-        es.onerror = () => {
-            es.close();
-            toast('Connection lost — check the server is running.', 6000);
+            $('progress-section').classList.add('hidden');
+            setStep(4);
+            $('done-msg').textContent =
+                `Sent ${result.sent} of ${result.total} email${result.total !== 1 ? 's' : ''} from davvo1929@gmail.com. Check your Sent folder.`;
+            $('done-section').classList.remove('hidden');
+            $('done-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            btn.textContent = 'Run Again';
+            btn.disabled = false;
+        } catch (e) {
+            toast('Error: ' + e.message, 5000);
             $('progress-section').classList.add('hidden');
             btn.disabled = false;
             btn.textContent = 'Run Pipeline';
-            $('run-status').textContent = '';
             setStep(1);
-        };
+        }
     });
 
     function esc(s) {

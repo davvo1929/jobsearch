@@ -6,5 +6,7 @@ public record JobListing(
         String company,
         String location,
         String description,
-        String companyDomain   // null when unknown
+        String companyDomain,
+        String recruiterName,
+        String recruiterEmail
 ) {}

@@ -3,7 +3,6 @@ package com.jobseeker.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jobseeker.model.JobListing;
-import com.jobseeker.model.RecruiterContact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -22,7 +21,7 @@ public class ClaudeDraftGenerator implements DraftGenerator {
     }
 
     @Override
-    public GeneratedContent generate(String resumeText, JobListing job, RecruiterContact contact) {
+    public GeneratedContent generate(String resumeText, JobListing job) {
         String prompt = """
                 Generate a tailored cover letter and recruiter outreach email for this job application. \
                 Make the cover letter professional and specific to the job requirements. \
@@ -43,7 +42,7 @@ public class ClaudeDraftGenerator implements DraftGenerator {
                 resumeText,
                 job.title(), job.company(), job.location(),
                 job.description(),
-                contact.recruiterName(), contact.email()
+                job.recruiterName(), job.recruiterEmail()
         );
 
         String content = chatClient.prompt()
@@ -51,10 +50,10 @@ public class ClaudeDraftGenerator implements DraftGenerator {
                 .call()
                 .content();
 
-        return parseContent(content, job, contact);
+        return parseContent(content, job);
     }
 
-    private GeneratedContent parseContent(String content, JobListing job, RecruiterContact contact) {
+    private GeneratedContent parseContent(String content, JobListing job) {
         try {
             String json = content.replaceAll("(?s)```[a-z]*\\n?", "").replaceAll("```", "").trim();
             JsonNode root = MAPPER.readTree(json);
@@ -65,7 +64,7 @@ public class ClaudeDraftGenerator implements DraftGenerator {
             );
         } catch (Exception e) {
             log.error("Failed to parse draft response: {}", e.getMessage());
-            String firstName = contact.recruiterName().split("\\s+")[0];
+            String firstName = job.recruiterName().split("\\s+")[0];
             return new GeneratedContent(
                     content,
                     "Application: " + job.title() + " at " + job.company(),
