@@ -24,7 +24,9 @@
       "Read(//c/softwares/apache-maven-3.9.9-bin/apache-maven-3.9.9/conf/**)",
       "Bash(mvn package *)",
       "Bash(jar tf *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
