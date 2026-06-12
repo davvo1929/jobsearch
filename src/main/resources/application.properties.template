@@ -1,6 +1,13 @@
 server.port=8080
 spring.application.name=jobseeker
-deepseek.api.key=YOUR_DEEPSEEK_API_KEY
+
+# Gemini via OpenAI-compatible endpoint (draft generation)
+spring.ai.openai.api-key=YOUR_GEMINI_API_KEY
+spring.ai.openai.base-url=https://generativelanguage.googleapis.com/v1beta/openai
+spring.ai.openai.chat.options.model=gemini-2.0-flash
+
+# Native Gemini API (job search with Google Search grounding)
+gemini.api.key=YOUR_GEMINI_API_KEY
 
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
